@@ -8,6 +8,7 @@
 #include "pch.h"
 #include "RankUp.h"
 
+#include <d3d11.h>
 #include <unordered_set>
 
 namespace
@@ -52,15 +53,8 @@ gameWrapper->HookEventWithCallerPost<ActorWrapper>("Function TAGame.GFxData_Scor
 		gameWrapper->UnregisterDrawables();
 		});
 
-	gameWrapper->HookEvent("Function TAGame.Team_TA.PostBeginPlay", [this](std::string eventName)
-	{
-		// dont init here it will count aswell as casual and freeplay
-
-		if (!gameWrapper->GetMMRWrapper().IsRanked(gameWrapper->GetMMRWrapper().GetCurrentPlaylist())) { return;}
-
-		LOG("[RankUp] Init Render");
-		gameWrapper->RegisterDrawable(std::bind(&RankUp::render, this, std::placeholders::_1));
-	});
+	gameWrapper->HookEvent("Function TAGame.Team_TA.PostBeginPlay", std::bind(&RankUp::RenderDrawable, this, std::placeholders::_1));
+	gameWrapper->HookEvent("Function TAGame.GameEvent_Soccar_TA.Destroyed", std::bind(&RankUp::UnRenderDrawable, this, std::placeholders::_1));
 	gameWrapper->HookEvent("Function TAGame.PRI_TA.OnTeamChanged", [this](std::string event_name) {updateDisplay(); });
 	gameWrapper->HookEvent("Function TAGame.GRI_TA.Destroyed", std::bind(&RankUp::griDestroyed, this, std::placeholders::_1));
 	gameWrapper->HookEvent("Function TAGame.GameEvent_Soccar_TA.OnAllTeamsCreated", [this](std::string eventName) {
@@ -127,6 +121,19 @@ gameWrapper->HookEventWithCallerPost<ActorWrapper>("Function TAGame.GFxData_Scor
 	// 	CheckMMRForRankUpdate();	
 	// 	CheckMMRForRankUpdate();	up
 	// }); 
+}
+
+void RankUp::RenderDrawable(std::string eventName)
+{
+	if (!gameWrapper->GetMMRWrapper().IsRanked(gameWrapper->GetMMRWrapper().GetCurrentPlaylist())) { return;}
+
+	LOG("[RankUp] Init Render");
+	gameWrapper->RegisterDrawable(std::bind(&RankUp::render, this, std::placeholders::_1));
+}
+
+void RankUp::UnRenderDrawable(std::string eventName)
+{
+	gameWrapper->UnregisterDrawables();
 }
 
 
@@ -197,33 +204,41 @@ void RankUp::CheckMMRForRankUpdate()
 	// Use std::lower_bound to find the first element >= input
 
 	iCurrentMMR = gameWrapper->GetMMRWrapper().GetPlayerMMR(gameWrapper->GetUniqueID(), gameWrapper->GetMMRWrapper().GetCurrentPlaylist());
-	iNextMMRMileStone;
-	iRankDifference = iNextMMRMileStone - iCurrentMMR;
-	
 	const int* next = std::lower_bound(ones, ones + 73, iCurrentMMR);
+	iRankDifference = *next - iCurrentMMR;
 
-	
+	if (next != ones + 73) { // Ensure that next is not out of bounds
+		if (*next == iCurrentMMR) {
+			++next; // Move to the next number
+		}
+	} else {
+		// fucking SSL (Current MMR is greater than the fucking array)
+	}
 
 	if (next == ones + 73) {
 		LOG("Unreachable statement");
 	} else { // TODO: voodoo shit
-		cvarManager->log("[RANKUP] Closest number: " + *next);
-
-		// average mmr gain is +9/-9 MMR
-
-		// 12+ MMR not ranking up defo (i hope)
-		// 5-12 MMR maybe
-		// 0-5 MMR defo
-
 		
+		cvarManager->log("[RANKUP] Closest number: " + *next);
+		
+		bool b = false;
 
-		LOG("Current MMR: " + std::to_string(iCurrentMMR) + ", Next Rank MMR: " + std::to_string(*next) + ", Rank Difference: " + std::to_string(iRankDifference));
+		if (!b)
+		{
+			LOG("Current MMR: " + std::to_string(iCurrentMMR) + ", Next Rank MMR: " + std::to_string(*next) + ", Rank Difference: " + std::to_string(iRankDifference));
+			b = true;
+		}
 		/*
 		 *  *next and iCurrentMMR SHOULD already have a value so RankLeft shouldent be null. Im hoping 21:50 10/12
 		 *  Ok i think it works its displays 16 MMR difference but i cant be asked to fact check it 21:56 10/12
 		 #1# */
 
 		// nested code incoming
+
+		//TODO: FIX - Current MMR and Next MMR are both the same,
+		// should be fixed
+
+		
 
 		if (iRankDifference >= 5) {
 			iStatus = 1;

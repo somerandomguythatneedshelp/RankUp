@@ -14,7 +14,7 @@ void RankUp::RenderWindow()
 void RankUp::RenderSettings()
 {
     ImGui::Text("Let me know if you have any suggestions.");
-    ImGui::Text("Please note that there is some features you might be thinking of that i am currently developing\n In that case read the README.md in the github repo");
+    ImGui::Text("Please note: there is some features you might be thinking of that i am currently developing\n In that case read the README.md in the github repo");
     ImGui::Separator();
     ImGui::Text("When this plugin states rank up, It WILL talk about divisions so if it says you will rank up it means divisions, may fix this in the future");
     ImGui::Separator();
