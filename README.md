@@ -12,3 +12,10 @@ Written on 15/12 00:43
 - Text shows up at the start of a game and does get removed at the end. 
 
 - Will remove unneccesary code for optimization 
+
+Written on 15/12 01:42
+
+- Changed max rank prediction from 9 - 13 
+- basic rank prediction, more testing later today
+
+- might add option to customize offset
