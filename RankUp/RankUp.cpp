@@ -41,6 +41,8 @@ void RankUp::onLoad()
 	LOG("[RankUp] load this baby up (Loaded plugin)");
 	PluginEnabled = true;
 
+	createFiles();
+
 gameWrapper->HookEventWithCallerPost<ActorWrapper>("Function TAGame.GFxData_Scoreboard_TA.UpdateSortedPlayerIDs", [this](ActorWrapper caller, ...)
 		{
 			getSortedIds(caller);
@@ -122,6 +124,23 @@ gameWrapper->HookEventWithCallerPost<ActorWrapper>("Function TAGame.GFxData_Scor
 	// 	CheckMMRForRankUpdate();	up
 	// }); 
 }
+
+void RankUp::createFiles()
+{
+	// file name is base64 encoded
+
+	if (!RankUp::exists(gameWrapper->GetDataFolder() / "RankUp" / "Rm9sbG93IG15IHRpa3RvayB0YWguMWE=.txt")) 
+	{
+		MMRGainListFile.open(gameWrapper->GetDataFolder() / "RankUp" / "Rm9sbG93IG15IHRpa3RvayB0YWguMWE=.txt");
+	}
+
+}
+
+inline bool RankUp::exists(const std::filesystem::path& path) {
+	struct stat buffer;
+	return (stat(path.string().c_str(), &buffer) == 0);
+}
+
 
 void RankUp::RenderDrawable(std::string eventName)
 {

@@ -21,6 +21,8 @@
 #include <thread>
 #include <queue>
 #include "Windows.h"
+#include <sys/stat.h>
+
 
 #include "GuiBase.h"
 #include "./Settings.h"
@@ -379,5 +381,12 @@ private:
 
     void RenderDrawable(std::string eventName);
     void UnRenderDrawable(std::string eventName);
-    
+
+    std::vector<int> MMRGainList;
+
+    void createFiles();
+
+    inline bool exists(const std::filesystem::path& name);
+
+    std::ofstream MMRGainListFile;
 };
