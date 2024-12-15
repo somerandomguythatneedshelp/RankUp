@@ -49,7 +49,18 @@ gameWrapper->HookEventWithCallerPost<ActorWrapper>("Function TAGame.GFxData_Scor
 	gameWrapper->HookEvent("Function TAGame.GFxData_GameEvent_TA.OnCloseScoreboard", std::bind(&RankUp::closeScoreboard, this, std::placeholders::_1));
 	gameWrapper->HookEvent("Function TAGame.GameEvent_Soccar_TA.OnMatchEnded", [this](std::string eventName) {
 		if (isSBOpen) closeScoreboard("");
+		gameWrapper->UnregisterDrawables();
 		});
+
+	gameWrapper->HookEvent("Function TAGame.Team_TA.PostBeginPlay", [this](std::string eventName)
+	{
+		// dont init here it will count aswell as casual and freeplay
+
+		if (!gameWrapper->GetMMRWrapper().IsRanked(gameWrapper->GetMMRWrapper().GetCurrentPlaylist())) { return;}
+
+		LOG("[RankUp] Init Render");
+		gameWrapper->RegisterDrawable(std::bind(&RankUp::render, this, std::placeholders::_1));
+	});
 	gameWrapper->HookEvent("Function TAGame.PRI_TA.OnTeamChanged", [this](std::string event_name) {updateDisplay(); });
 	gameWrapper->HookEvent("Function TAGame.GRI_TA.Destroyed", std::bind(&RankUp::griDestroyed, this, std::placeholders::_1));
 	gameWrapper->HookEvent("Function TAGame.GameEvent_Soccar_TA.OnAllTeamsCreated", [this](std::string eventName) {
@@ -112,9 +123,10 @@ gameWrapper->HookEventWithCallerPost<ActorWrapper>("Function TAGame.GFxData_Scor
 		ComputeScoreboardInfo();
 		});
 
-	gameWrapper->HookEvent("Function GameEvent_Soccar_TA.Active.StartRound", [this](std::string eventName) {
-		CheckMMRForRankUpdate();	
-	});
+	// gameWrapper->HookEvent("Function GameEvent_Soccar_TA.Active.StartRound", [this](std::string eventName) { // kickoff
+	// 	CheckMMRForRankUpdate();	
+	// 	CheckMMRForRankUpdate();	up
+	// }); 
 }
 
 
@@ -172,55 +184,52 @@ void RankUp::updateDisplay() {
 
 		//precomputeRankImages(pri, displayRank, oranges, blues, playlist, show_division, show_playlist, calculate_unranked);
 	}
-	gameWrapper->UnregisterDrawables();
+	//gameWrapper->UnregisterDrawables();
 	gameWrapper->RegisterDrawable(std::bind(&RankUp::render, this, std::placeholders::_1));
 }
 
+void RankUp::CheckMMRForRankUpdate()
+{
+	// assume this shit is ranked
+
+	if (!gameWrapper->GetMMRWrapper().IsRanked(gameWrapper->GetMMRWrapper().GetCurrentPlaylist())) { return;}
+
+	int currentMMR = gameWrapper->GetMMRWrapper().GetPlayerMMR(gameWrapper->GetUniqueID(), gameWrapper->GetMMRWrapper().GetCurrentPlaylist());
+
+	// Use std::lower_bound to find the first element >= input
+	const int* next = std::lower_bound(ones, ones + 73, currentMMR);
+
+	if (next == ones + 73) {
+		//std::cout << "No number found greater than or equal to " << input << '\n';
+	} else { // TODO: voodoo shit
+		//std::cout << "Next closest number: " << *next << '\n';
+		cvarManager->log("[RANKUP EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE] Closest number: " + *next);
+
+		// average mmr gain is +9/-9 MMR
+
+		// 12+ MMR not ranking up defo (i hope)
+		// 5-12 MMR maybe
+		// 0-5 MMR defo
+
+		const int RankLeft = *next - currentMMR;
+
+		LOG("Current MMR: " + std::to_string(currentMMR) + ", Next Rank MMR: " + std::to_string(*next) + ", Rank Difference: " + std::to_string(RankLeft));
+		/*
+		 *  *next and currentMMR SHOULD already have a value so RankLeft shouldent be null. Im hoping 21:50 10/12
+		 *  Ok i think it works its displays 16 MMR difference but i cant be asked to fact check it 21:56 10/12
+		 */
+
+		// nested code incoming
+
+		
+	}
+}
+
 void RankUp::render(CanvasWrapper canvas) {
-	// Images are "cached" in the toRender variable so we don't have to recalculate positions and images every frame just render the precalculated images
 	
-	for (image img : toRender)
-	{
-		canvas.SetColor(img.color);
-		canvas.SetPosition(img.position);
-		if (img.img.get()->IsLoadedForCanvas()) {
-			canvas.DrawTexture(img.img.get(), img.scale);
-		}
-		else {
-			img.img.get()->LoadForCanvas();
-		}
-
-#ifdef _DEBUG
-		//Draws a box around the rendered images
-		int X1 = img.position.X;
-		int X2 = X1 + int(img.img->GetSize().X * img.scale);
-		int Y1 = img.position.Y;
-		int Y2 = Y1 + int(img.img->GetSize().Y * img.scale);
-		canvas.DrawLine(Vector2{ X1, Y1 }, Vector2{ X2, Y1 });
-		canvas.DrawLine(Vector2{ X1, Y1 }, Vector2{ X1, Y2 });
-		canvas.DrawLine(Vector2{ X1, Y2 }, Vector2{ X2, Y2 });
-		canvas.DrawLine(Vector2{ X2, Y1 }, Vector2{ X2, Y2 });
-#endif
-
-	}
-	canvas.SetColor((char)255, (char)255, (char)255, (char)255);
-
-	if (!show_rank_on) {
-		// If show player mmr is disabled in bakkesmod settings notify the player with a red message
-		canvas.SetColor(255, 0, 0, 255);
-		canvas.SetPosition(Vector2{ 0, 0 });
-		canvas.DrawString("Turn on \"Ranked->Show player MMR on scoreboard\" and \"Ranked->Show MMR in casual playlists\" in the bakkesmod menu!", 1.5f, 1.5f);
-	}
-
-#ifdef _DEBUG
-	int offset = 100;
-	for (auto id : sortednames) {
-		canvas.SetPosition(Vector2{10, offset});
-		canvas.DrawString(id, 2.0f, 2.0f);
-		offset += 25;
-	}
-#endif // _DEBUG
-
+	canvas.SetColor(255, 0, 0, 255);
+	canvas.SetPosition(Vector2{ 0, 0 });
+	canvas.DrawString("This is a test, i believe in you so win this game!!!", 1.5f, 1.5f);
 
 	//renderPlaylist(canvas);
 }
@@ -396,43 +405,6 @@ bool RankUp::sortPris(Pri a, Pri b) {
 	}
 }
 
-void RankUp::CheckMMRForRankUpdate()
-{
-	// assume this shit is ranked
-
-	if (!gameWrapper->GetMMRWrapper().IsRanked(gameWrapper->GetMMRWrapper().GetCurrentPlaylist())) { return;}
-
-	int currentMMR = gameWrapper->GetMMRWrapper().GetPlayerMMR(gameWrapper->GetUniqueID(), gameWrapper->GetMMRWrapper().GetCurrentPlaylist());
-
-	// Use std::lower_bound to find the first element >= input
-	const int* next = std::lower_bound(ones, ones + 73, currentMMR);
-
-	if (next == ones + 73) {
-		//std::cout << "No number found greater than or equal to " << input << '\n';
-	} else { // TODO: voodoo shit
-		//std::cout << "Next closest number: " << *next << '\n';
-		cvarManager->log("[RANKUP EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE] Closest number: " + *next);
-
-		// average mmr gain is +9/-9 MMR
-
-		// 12+ MMR not ranking up defo (i hope)
-		// 5-12 MMR maybe
-		// 0-5 MMR defo
-
-		const int RankLeft = *next - currentMMR;
-
-		LOG("Current MMR: " + std::to_string(currentMMR) + ", Next Rank MMR: " + std::to_string(*next) + ", Rank Difference: " + std::to_string(RankLeft));
-		/*
-		 *  *next and currentMMR SHOULD already have a value so RankLeft shouldent be null. Im hoping 21:50 10/12
-		 *  Ok i think it works its displays 16 MMR difference but i cant be asked to fact check it 21:56 10/12
-		 */
-
-		// nested code incoming
-
-		
-	}
-}
-
 void RankUp::openScoreboard(std::string eventName) {
 	//if (!*PluginEnabled) return;
 	if (!gameWrapper) return;
@@ -454,7 +426,7 @@ void RankUp::closeScoreboard(std::string eventName) {
 	if (!gameWrapper) return;
 
 	if (isSBOpen) {
-		gameWrapper->UnregisterDrawables();
+		//gameWrapper->UnregisterDrawables();
 		toRender.clear();
 		isSBOpen = false;
 	}

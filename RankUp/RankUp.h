@@ -35,6 +35,7 @@ class RankUp: public BakkesMod::Plugin::BakkesModPlugin
 	,public SettingsWindowBase // Uncomment if you wanna render your own tab in the settings menu
 	,public PluginWindowBase // Uncomment if you want to render your own plugin window
 {
+    
 public:
 	 struct Pri {
 		std::string uid;
@@ -371,5 +372,6 @@ private:
 
     void render(CanvasWrapper canvas);
 
+    
     
 };
