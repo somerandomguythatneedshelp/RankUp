@@ -32,7 +32,7 @@ namespace
 	}
 }
 
-std::shared_ptr<CVarManagerWrapper> _globalCvarManager;
+std::shared_ptr<CVarManagerWrapper> _globalCvarManager; 
 
 void RankUp::onLoad()
 {
