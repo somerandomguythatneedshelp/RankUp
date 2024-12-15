@@ -389,4 +389,12 @@ private:
     inline bool exists(const std::filesystem::path& name);
 
     std::ofstream MMRGainListFile;
+
+    // -------------------------------------------------------------------- shit code incoming
+
+    int MMRGain;
+    void CalculateMMRGain();
+    int newCurrentMMR;
+
+    std::string playlist;
 };

@@ -43,63 +43,25 @@ void RankUp::onLoad()
 
 	createFiles();
 
-gameWrapper->HookEventWithCallerPost<ActorWrapper>("Function TAGame.GFxData_Scoreboard_TA.UpdateSortedPlayerIDs", [this](ActorWrapper caller, ...)
-		{
-			getSortedIds(caller);
-			ComputeScoreboardInfo();
-		});
+	gameWrapper->HookEventWithCallerPost<ActorWrapper>("Function TAGame.GFxData_Scoreboard_TA.UpdateSortedPlayerIDs", [this](ActorWrapper caller, ...) {
+		getSortedIds(caller);
+		ComputeScoreboardInfo();
+	});
 	gameWrapper->HookEvent("Function TAGame.GFxData_GameEvent_TA.OnOpenScoreboard", std::bind(&RankUp::openScoreboard, this, std::placeholders::_1));
 	gameWrapper->HookEvent("Function TAGame.GFxData_GameEvent_TA.OnCloseScoreboard", std::bind(&RankUp::closeScoreboard, this, std::placeholders::_1));
 	gameWrapper->HookEvent("Function TAGame.GameEvent_Soccar_TA.OnMatchEnded", [this](std::string eventName) {
 		if (isSBOpen) closeScoreboard("");
 		gameWrapper->UnregisterDrawables();
-		});
-
+	});
 	gameWrapper->HookEvent("Function TAGame.Team_TA.PostBeginPlay", std::bind(&RankUp::RenderDrawable, this, std::placeholders::_1));
 	gameWrapper->HookEvent("Function TAGame.GameEvent_Soccar_TA.Destroyed", std::bind(&RankUp::UnRenderDrawable, this, std::placeholders::_1));
 	gameWrapper->HookEvent("Function TAGame.PRI_TA.OnTeamChanged", [this](std::string event_name) {updateDisplay(); });
 	gameWrapper->HookEvent("Function TAGame.GRI_TA.Destroyed", std::bind(&RankUp::griDestroyed, this, std::placeholders::_1));
-	gameWrapper->HookEvent("Function TAGame.GameEvent_Soccar_TA.OnAllTeamsCreated", [this](std::string eventName) {
-		// Called when the match is loaded, so we can set the display playlist if the selection is on -1 (Current)
-
-		if (!cvarManager || !gameWrapper) return;
-
-		CVarWrapper playlist_cvar = cvarManager->getCvar("ingamerank_playlist");
-		if (playlist_cvar.IsNull()) return;
-
-		if (playlist_cvar.getIntValue() == -1) {
-			// If the playlist selection is "Current" set display playlist to the current playlist
-
-			int current_playlist = gameWrapper->GetMMRWrapper().GetCurrentPlaylist();
-			if (PLAYLIST_NAMES.find(current_playlist) == PLAYLIST_NAMES.end()) {
-				// If the current playlist is not ranked, set the display to 0 (Best)
-				display_playlist = 0;
-			}
-			else {
-				// Otherwise set it to the current playlist
-				display_playlist = current_playlist;
-			}
-		}
-		else {
-			// Otherwise set it to the selected playlist
-
-			if (PLAYLIST_NAMES.find(playlist_cvar.getIntValue()) == PLAYLIST_NAMES.end()) {
-				// Make sure the playlist cvar has a valid value
-				display_playlist = 0;
-			}
-			else {
-				display_playlist = playlist_cvar.getIntValue();
-			}
-		}
-		});
-
 	gameWrapper->HookEvent("Function ReplayDirector_TA.Playing.EndState", [this](std::string eventName) {
-		// Refresh the display if an instant replay has ended
 		isReplaying = false;
 		updateDisplay();
-		});
+	});
 	gameWrapper->HookEvent("Function ReplayDirector_TA.Playing.BeginState", [this](std::string eventName) {
-		// Refresh the display if an instant replay has started so the images can move out of the way of the check marks
 		isReplaying = true;
 		updateDisplay();
 		});
@@ -136,6 +98,16 @@ void RankUp::createFiles()
 
 }
 
+void RankUp::CalculateMMRGain() // called after the match has cnocluded
+{
+	newCurrentMMR = gameWrapper->GetMMRWrapper().GetPlayerMMR(gameWrapper->GetUniqueID(), 10);
+	LOG("[RankUp] Current MMR After Match" + std::to_string(newCurrentMMR));
+	LOG("[RankUp] Current MMR Before Match" + std::to_string(iCurrentMMR));
+	LOG("[RankUp] MMR Gain should be = " + std::to_string(newCurrentMMR - iCurrentMMR));
+	LOG("PlayList ID" + playlist);
+}
+
+
 inline bool RankUp::exists(const std::filesystem::path& path) {
 	struct stat buffer;
 	return (stat(path.string().c_str(), &buffer) == 0);
@@ -146,6 +118,8 @@ void RankUp::RenderDrawable(std::string eventName)
 {
 	if (!gameWrapper->GetMMRWrapper().IsRanked(gameWrapper->GetMMRWrapper().GetCurrentPlaylist())) { return;}
 
+	playlist = std::to_string(gameWrapper->GetMMRWrapper().GetCurrentPlaylist());
+
 	LOG("[RankUp] Init Render");
 	gameWrapper->RegisterDrawable(std::bind(&RankUp::render, this, std::placeholders::_1));
 }
@@ -153,6 +127,7 @@ void RankUp::RenderDrawable(std::string eventName)
 void RankUp::UnRenderDrawable(std::string eventName)
 {
 	gameWrapper->UnregisterDrawables();
+	CalculateMMRGain();
 }
 
 
