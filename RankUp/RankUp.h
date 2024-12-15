@@ -372,6 +372,11 @@ private:
 
     void render(CanvasWrapper canvas);
 
+    int iCurrentMMR;
+    int iNextMMRMileStone;
+    int iRankDifference;
+
+    int iStatus = 0; // 0 = unknown, 1 = rank up, 2 = maybe, 3 = no
     
     
 };

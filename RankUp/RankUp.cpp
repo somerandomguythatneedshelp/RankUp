@@ -194,16 +194,20 @@ void RankUp::CheckMMRForRankUpdate()
 
 	if (!gameWrapper->GetMMRWrapper().IsRanked(gameWrapper->GetMMRWrapper().GetCurrentPlaylist())) { return;}
 
-	int currentMMR = gameWrapper->GetMMRWrapper().GetPlayerMMR(gameWrapper->GetUniqueID(), gameWrapper->GetMMRWrapper().GetCurrentPlaylist());
-
 	// Use std::lower_bound to find the first element >= input
-	const int* next = std::lower_bound(ones, ones + 73, currentMMR);
+
+	iCurrentMMR = gameWrapper->GetMMRWrapper().GetPlayerMMR(gameWrapper->GetUniqueID(), gameWrapper->GetMMRWrapper().GetCurrentPlaylist());
+	iNextMMRMileStone;
+	iRankDifference = iNextMMRMileStone - iCurrentMMR;
+	
+	const int* next = std::lower_bound(ones, ones + 73, iCurrentMMR);
+
+	
 
 	if (next == ones + 73) {
-		//std::cout << "No number found greater than or equal to " << input << '\n';
+		LOG("Unreachable statement");
 	} else { // TODO: voodoo shit
-		//std::cout << "Next closest number: " << *next << '\n';
-		cvarManager->log("[RANKUP EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE] Closest number: " + *next);
+		cvarManager->log("[RANKUP] Closest number: " + *next);
 
 		// average mmr gain is +9/-9 MMR
 
@@ -211,25 +215,56 @@ void RankUp::CheckMMRForRankUpdate()
 		// 5-12 MMR maybe
 		// 0-5 MMR defo
 
-		const int RankLeft = *next - currentMMR;
+		
 
-		LOG("Current MMR: " + std::to_string(currentMMR) + ", Next Rank MMR: " + std::to_string(*next) + ", Rank Difference: " + std::to_string(RankLeft));
+		LOG("Current MMR: " + std::to_string(iCurrentMMR) + ", Next Rank MMR: " + std::to_string(*next) + ", Rank Difference: " + std::to_string(iRankDifference));
 		/*
-		 *  *next and currentMMR SHOULD already have a value so RankLeft shouldent be null. Im hoping 21:50 10/12
+		 *  *next and iCurrentMMR SHOULD already have a value so RankLeft shouldent be null. Im hoping 21:50 10/12
 		 *  Ok i think it works its displays 16 MMR difference but i cant be asked to fact check it 21:56 10/12
-		 */
+		 #1# */
 
 		// nested code incoming
+
+		if (iRankDifference >= 5) {
+			iStatus = 1;
+		} else if (iRankDifference <= 5 && iRankDifference >= 13) {
+			iStatus = 2;
+		} else if (iRankDifference <= 9) {
+			iStatus = 3;
+		} else {
+			iStatus = 0;
+		}
 
 		
 	}
 }
 
 void RankUp::render(CanvasWrapper canvas) {
+
+	CheckMMRForRankUpdate();
 	
-	canvas.SetColor(255, 0, 0, 255);
-	canvas.SetPosition(Vector2{ 0, 0 });
-	canvas.DrawString("This is a test, i believe in you so win this game!!!", 1.5f, 1.5f);
+	if (iStatus == 1)
+	{
+		canvas.SetColor(0, 255, 0, 255);
+		canvas.SetPosition(Vector2{ 0, 0 });
+		canvas.DrawString("You will Rank up if you win this game!!!!!", 1.5f, 1.5f);
+	} else if (iStatus == 2)
+	{
+		canvas.SetColor(255, 140, 0, 255);
+		canvas.SetPosition(Vector2{ 0, 0 });
+		canvas.DrawString("You might rank up if you win this game", 1.5f, 1.5f);
+	} else if (iStatus == 3)
+	{
+		canvas.SetColor(255, 0, 0, 255);
+		canvas.SetPosition(Vector2{ 0, 0 });
+		canvas.DrawString("You will not rank up if you win this game", 1.5f, 1.5f);
+	} else if (iStatus == 0) {
+		canvas.SetColor(255, 255, 255, 255);
+		canvas.SetPosition(Vector2{ 0, 0 });
+		canvas.DrawString("Unknown", 1.5f, 1.5f);
+	} else {
+		LOG("i hate C++");
+	}
 
 	//renderPlaylist(canvas);
 }
