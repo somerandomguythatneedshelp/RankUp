@@ -104,7 +104,25 @@ void RankUp::CalculateMMRGain() // called after the match has cnocluded
 	LOG("[RankUp] Current MMR After Match" + std::to_string(newCurrentMMR));
 	LOG("[RankUp] Current MMR Before Match" + std::to_string(iCurrentMMR));
 	LOG("[RankUp] MMR Gain should be = " + std::to_string(newCurrentMMR - iCurrentMMR));
-	LOG("PlayList ID" + playlist);
+	MMRGain = newCurrentMMR - iCurrentMMR;
+	//LOG("PlayList ID: " + playlist);
+
+	// ^^ dont know if it works but i hope it does
+	
+	if (MMRGain < 0) { return; }  // player most likely lost a game
+	if (MMRGain == 0) { return; } // ok dude, what the sigma
+	// ^ redundant control jump flow statement my ass
+
+	MMRGainList.push_back(MMRGain);
+	
+	MMRGainListFile << MMRGain << std::endl; // new line at the end
+	
+	/*
+	 Aint Risking it, OnunLoad() might not be called when game is forcefully closed 
+	 */
+
+	
+	
 }
 
 
@@ -280,6 +298,7 @@ void RankUp::render(CanvasWrapper canvas) {
 
 void RankUp::onUnload()
 {
+	MMRGainListFile.close(); 
 	LOG("[RankUp] byeeeeee");
 	PluginEnabled = false;
 }
