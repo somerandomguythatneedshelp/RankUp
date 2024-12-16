@@ -27,3 +27,11 @@ Written on 15/12 16:26
 - Fixed a bug where current mmr and the next mmr int would be the same
 
 - Will add another feature to get the average MMR gain and save that to a file, Will use that to determine if the user will rank up.
+
+Written on 16/12 21:32
+
+- Written base for CalculateMMRGain()
+- Adds non negatives numbers (numbers that are not 0 or below) to a file to find the average and use that for the max mmr prediction (add all values and divide by how many values there are to find the average)
+
+- Will test tommorow
+
