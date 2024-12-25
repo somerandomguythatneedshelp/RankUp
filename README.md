@@ -6,6 +6,23 @@ I am using Rider to code and build because i can and i like being *unique*
 
 MERRY CHRISTMAS HO HO HO 
 
+### algoritm
+
+Game starts -> Check if Ranked -> if playlist id != 10 = 2v2 -> BeforeMatchMMR (n1) -> Game ends -> AfterMatchMMR (n2) -> Calculate difference (subtract current mmr with new mmr) -> Is new int negative or not (n3) -> if positive player win -> save mmr to a file
+
+Game starts -> Get MMR values from file -> Calculate average (n4) -> add current mmr before the match 
+
+# n1 
+this int is initalized before the match starts to compare later
+
+# n2
+This int is initalized after the match has ended
+
+# n3
+Subtract n2 with n1, This is the mmr gain, if it is positive the player has won the game, if its negative the player lost the game. 
+
+
+
 ### WiP Comments
 
 Timezone: GMT
