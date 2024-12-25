@@ -10,7 +10,7 @@ MERRY CHRISTMAS HO HO HO
 
 Game starts -> Check if Ranked -> if playlist id != 10 = 2v2 -> BeforeMatchMMR (n1) -> Game ends -> AfterMatchMMR (n2) -> Calculate difference (subtract current mmr with new mmr) -> Is new int negative or not (n3) -> if positive player win -> save mmr to a file
 
-Game starts -> Get MMR values from file -> Calculate average (n4) -> add current mmr before the match 
+Game starts -> Get MMR values from file -> Calculate average (n4) -> add current mmr before the match to the array with MMR rankings and find the next one -> add current MMR with average mmr gain -> see if the next mmr ranking is still the next one -> if not, player will rank up, if not, the player will not rank up
 
 # n1 
 this int is initalized before the match starts to compare later
@@ -21,7 +21,8 @@ This int is initalized after the match has ended
 # n3
 Subtract n2 with n1, This is the mmr gain, if it is positive the player has won the game, if its negative the player lost the game. 
 
-
+# n4 
+To calculate the average, add all the numbers from the list, then divide by how many items you divided by
 
 ### WiP Comments
 
