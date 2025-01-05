@@ -9,9 +9,4 @@
 #include <functional>
 #include <memory>
 
-#include "IMGUI/imgui.h"
-#include "IMGUI/imgui_stdlib.h"
-#include "IMGUI/imgui_searchablecombo.h"
-#include "IMGUI/imgui_rangeslider.h"
-
-#include "logging.h"
+#include "imgui/imgui.h"
