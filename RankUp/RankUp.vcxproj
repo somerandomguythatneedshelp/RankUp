@@ -132,6 +132,7 @@
     <ClInclude Include="GuiBase.h" />
     <ClInclude Include="PlaylistData.h" />
     <ClInclude Include="RankEnums.h" />
+    <ClInclude Include="RankUp.h" />
     <ClInclude Include="version.h" />
   </ItemGroup>
     <ItemGroup>

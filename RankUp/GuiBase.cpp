@@ -1,9 +1,11 @@
 ﻿#include "pch.h"
 #include "GuiBase.h"
 
+#include "logging.h"
+
 std::string SettingsWindowBase::GetPluginName()
 {
-	return "RankUp";
+	return "$projectname$";
 }
 
 void SettingsWindowBase::SetImGuiContext(uintptr_t ctx)
@@ -13,7 +15,7 @@ void SettingsWindowBase::SetImGuiContext(uintptr_t ctx)
 
 std::string PluginWindowBase::GetMenuName()
 {
-	return "RankUp";
+	return "$projectname$";
 }
 
 std::string PluginWindowBase::GetMenuTitle()
