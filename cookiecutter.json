@@ -1,6 +1,6 @@
 {
     "plugin_name": "RankUp",
-    "plugin_description": "RankUp Plugin",
+    "plugin_description": "RankUp plugin",
     "_copy_without_render": [
         "{{cookiecutter.plugin_name}}/fmt/src/*", 
         "{{cookiecutter.plugin_name}}/fmt/include/fmt/*", 
